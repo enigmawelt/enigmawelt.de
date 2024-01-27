@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License 
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-# Special thanks go to @jbleyel who was and is significantly involved in the realization.
+# Special thanks go to @jbleyel and @stein17 who was and is significantly involved in the realization.
 
 # -*- coding: UTF-8 -*-
 import base64
@@ -51,30 +51,31 @@ def geturl(url):
 class enimaWeltScreen(Screen):
 
 	skin = """
-	<screen name="Main" position="center,center" size="1200,600" resolution="1280,720" flags="wfNoBorder" >
-		<widget source="Title" render="Label" position="10,5" size="1150,40" font="Regular;28"/>
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/head_logo.png" position="1150,5" size="40,40" alphatest="blend" scale="1" />
-		<widget source="movielist" render="Listbox" position="10,50" size="700,485" scrollbarMode="showOnDemand">
+	<screen name="Main" position="center,center" size="1800,900" resolution="1920,1080" flags="wfNoBorder" >
+		<widget source="Title" render="Label" position="10,15" size="1720,68" font="Bold;42" transparent="1" />
+        	<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/bg.png" position="0,0" size="1920,1080" zPosition="-5"  scale="1" />
+		    <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/head_logo.png" position="1720,11" size="68,68" alphatest="blend" scale="1" />
+		<widget source="movielist" render="Listbox" position="10,100" size="1070,728" scrollbarMode="showOnDemand" scrollbarForegroundColor="#029d9d" scrollbarBackgroundColor="#125454" foregroundColor="#d1d5d5" foregroundColorSelected="white" backgroundColor="background" backgroundColorSelected="#029d9d"  transparent="1">
 			<convert type="TemplatedMultiContent">
 				{
 				"templates":
 					{
 					"default": (40,
 						[
-						MultiContentEntryText(pos=(5, 0), size=(550, 35), font=0, flags=RT_HALIGN_LEFT | RT_VALIGN_CENTER, text=0),
+						MultiContentEntryText(pos=(5, 0), size=(1020, 35), font=0, flags=RT_HALIGN_LEFT | RT_VALIGN_CENTER, text=0),
 						])
 					},
-				"itemHeight" : 40,
-				"fonts": [parseFont("Regular;20")]
+				"itemHeight" : 32,
+				"fonts": [parseFont("Regular;28")]
 				}
 			</convert>
 		</widget>
-		<widget name="cover" position="730,50" size="460,214" alphatest="blend" conditional="cover" scaleFlags="scaleCenter" transparent="1" />
-		<widget source="description" render="Label" position="730,275" size="460,285" conditional="description" font="Regular;18" horizontalAlignment="block" />
-		<widget source="key_red" render="Label" position="1095,e-40" size="85,40" backgroundColor="white" font="Verdana;25" foregroundColor="black" halign="center" noWrap="1" valign="center">
+		<widget name="cover" position="1095,100" size="690,325" alphatest="blend" conditional="cover" scaleFlags="scaleCenter" transparent="1" />
+		<widget source="description" render="Label" position="1095,445" size="680,420" conditional="description" font="Regular;27" horizontalAlignment="block" transparent="1"/>
+		<widget source="key_red" render="Label" position="1643,e-60" size="128,60" backgroundColor="white" font="Verdana;38" foregroundColor="black" halign="center" noWrap="1" valign="center">
 			<convert type="ConditionalShowHide" />
 		</widget>
-		<widget source="key_green" render="Label" position="995,e-40" size="85,40" backgroundColor="white" font="Verdana;25" foregroundColor="black" halign="center" noWrap="1" valign="center">
+		<widget source="key_green" render="Label" position="1493,e-60" size="128,60" backgroundColor="white" font="Verdana;38" foregroundColor="black" halign="center" noWrap="1" valign="center">
 			<convert type="ConditionalShowHide" />
 		</widget>
 		<widget source="key_yellow" render="Label" position="390,e-45" size="180,35" backgroundColor="key_yellow" conditional="key_yellow" font="Regular;18" foregroundColor="key_text" halign="center" noWrap="1" valign="center">
