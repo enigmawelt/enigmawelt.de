@@ -9,3 +9,9 @@ The plugin allows easy access to all previously published videos from VideoBlog 
 - Vertical directional pad (select entry from the list)
 - OK Play videos of the selected list entry
 - EXIT Ends the playback of a video and or exits the plugin
+
+Manual installation:
+
+- create a directory on the box ... /usr/lib/enigma2/python/Plugins/Enigmawelt
+- copy the content of /src into this directory
+- restart Enigma2
