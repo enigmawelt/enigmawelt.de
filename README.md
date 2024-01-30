@@ -12,6 +12,6 @@ The plugin allows easy access to all previously published videos from VideoBlog 
 
 Manual installation:
 
-- create a directory on the box ... /usr/lib/enigma2/python/Plugins/Enigmawelt
+- create a directory on the box ... /usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt
 - copy the content of /src into this directory
 - restart Enigma2
