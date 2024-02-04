@@ -1,16 +1,16 @@
 # This file is part of the OE-A distribution (https://github.com/xxxx or http://xxx.github.io).
 # Copyright (c) 2015 Liviu Ionescu.
-# 
-# This program is free software: you can redistribute it and/or modify  
-# it under the terms of the GNU General Public License as published by  
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, version 3.
 #
-# This program is distributed in the hope that it will be useful, but 
-# WITHOUT ANY WARRANTY; without even the implied warranty of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License 
+# You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 # Special thanks go to @jbleyel and @stein17 who was and is significantly involved in the realization.
@@ -22,6 +22,7 @@ from os.path import exists, join
 from json import loads
 import re
 import requests
+from twisted.internet.reactor import callInThread
 #from PIL import Image
 
 from enigma import eServiceReference, ePicLoad, gPixmapPtr
@@ -33,7 +34,8 @@ from Components.Sources.List import List
 from Plugins.Plugin import PluginDescriptor
 from Screens.InfoBar import MoviePlayer
 from Screens.Screen import Screen
-from twisted.internet.reactor import callInThread
+from Screens.VirtualKeyBoard import VirtualKeyBoard
+
 PLUGINPATH = "/usr/lib/enigma2/python/Plugins/Extensions/EnigmaWelt/"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36"
 TMPIC = "/tmp/ewcover"
@@ -55,6 +57,9 @@ class enimaWeltScreen(Screen):
 		<widget source="Title" render="Label" position="10,15" size="1720,68" font="Bold;42" transparent="1" />
         	<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/bg.png" position="0,0" size="1920,1080" zPosition="-5"  scale="1" />
 		    <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/head_logo.png" position="1720,11" size="68,68" alphatest="blend" scale="1" />
+			<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/red.png" position="1643,e-5" size="128,5" alphatest="blend" scale="1" />
+			<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/green.png" position="1493,e-5" size="128,5" alphatest="blend" scale="1" />
+			<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/yellow.png" position="1343,e-5" size="128,5" alphatest="blend" scale="1" />
 		<widget source="movielist" render="Listbox" position="10,100" size="1070,728" scrollbarMode="showOnDemand" scrollbarForegroundColor="#029d9d" scrollbarBackgroundColor="#125454" foregroundColor="#d1d5d5" foregroundColorSelected="white" backgroundColor="background" backgroundColorSelected="#029d9d"  transparent="1">
 			<convert type="TemplatedMultiContent">
 				{
@@ -72,13 +77,13 @@ class enimaWeltScreen(Screen):
 		</widget>
 		<widget name="cover" position="1095,100" size="690,325" alphatest="blend" conditional="cover" scaleFlags="scaleCenter" transparent="1" />
 		<widget source="description" render="Label" position="1095,445" size="680,420" conditional="description" font="Regular;27" horizontalAlignment="block" transparent="1"/>
-		<widget source="key_red" render="Label" position="1643,e-60" size="128,60" backgroundColor="white" font="Verdana;38" foregroundColor="black" halign="center" noWrap="1" valign="center">
+		<widget source="key_red" render="Label" position="1643,e-60" size="128,60" font="Verdana;35" foregroundColor="white" halign="center" noWrap="1" valign="center" transparent="1">
 			<convert type="ConditionalShowHide" />
 		</widget>
-		<widget source="key_green" render="Label" position="1493,e-60" size="128,60" backgroundColor="white" font="Verdana;38" foregroundColor="black" halign="center" noWrap="1" valign="center">
+		<widget source="key_green" render="Label" position="1493,e-60" size="128,60" font="Verdana;35" foregroundColor="white" halign="center" noWrap="1" valign="center" transparent="1">
 			<convert type="ConditionalShowHide" />
 		</widget>
-		<widget source="key_yellow" render="Label" position="390,e-45" size="180,35" backgroundColor="key_yellow" conditional="key_yellow" font="Regular;18" foregroundColor="key_text" halign="center" noWrap="1" valign="center">
+		<widget source="key_yellow" render="Label" position="1343,e-60" size="128,60" font="Verdana;35" foregroundColor="white" halign="center" noWrap="1" valign="center" transparent="1">
 			<convert type="ConditionalShowHide" />
 		</widget>
 		<widget source="key_blue" render="Label" position="580,e-45" size="180,35" backgroundColor="key_blue" conditional="key_blue" font="Regular;18" foregroundColor="key_text" halign="center" noWrap="1" valign="center">
@@ -92,7 +97,7 @@ class enimaWeltScreen(Screen):
 			{
 				"green": self.ok,
 				"red": self.exit,
-#				"blue": self.Home,
+				"yellow": self.search,
 				"up": self.up,
 				"down": self.down,
 				"left": self.left,
@@ -107,11 +112,13 @@ class enimaWeltScreen(Screen):
 		self["description"] = StaticText()
 		self["key_red"] = StaticText("EXIT")
 		self["key_green"] = StaticText("OK")
-		self["key_yellow"] = StaticText()
+		self["key_yellow"] = StaticText("SUCHE")
 		self["key_blue"] = StaticText()
-		self._items = []
+		self.filteredItems = []
+		self.allItems = []
 		if not exists("/tmp/ewcover/"):
 			mkdir("/tmp/ewcover/")
+		self.filter = ""
 		self.onLayoutFinish.append(self.mainMenu)
 		self.setTitle("Enigmawelt | Der größte DreamOS/Enigma2 Video Blog")
 
@@ -123,7 +130,7 @@ class enimaWeltScreen(Screen):
 			return None
 
 	def parseData(self, data):
-		self._items = []
+		self.allItems = []
 		try:
 			items = loads(data)
 			if 'items' in items:
@@ -140,19 +147,34 @@ class enimaWeltScreen(Screen):
 						if pos > 0:
 							content_text = content_text[:pos]
 						url = self.getUrl((url))
-						self._items.append((title, url, image_url, content_text))
+						self.allItems.append((title, url, image_url, content_text))
 		except Exception as e:
 			pass
+
+	def search(self):
+		def searchCallback(text):
+			if text:
+				self.filter = text.upper()
+			else:
+				self.filter = ""
+			self.refresh()
+
+		self.session.openWithCallback(searchCallback, VirtualKeyBoard, title=_("Suche..."), windowTitle=_("Suche"))
 
 	def mainMenu(self):
 		def getList():
 			data = geturl("https://enigmawelt.de/feed/json")
 			if data:
 				self.parseData(data)
-				self["movielist"].list = self._items
-				self.infos()
-
+				self.refresh()
 		callInThread(getList)
+
+	def refresh(self):
+		self.filteredItems = self.allItems[:]
+		if self.filter:
+			self.filteredItems = [i for i in self.filteredItems if self.filter in i[0].upper()]
+		self["movielist"].list = self.filteredItems
+		self.infos()
 
 	def ok(self):
 		url = self["movielist"].getCurrent()[1]
