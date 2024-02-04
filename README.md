@@ -15,3 +15,7 @@ Manual installation:
 - create a directory on the box ... /usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt
 - copy the content of /src into this directory
 - restart Enigma2
+
+v1.1
+- Search function added
+- Return from the search results list, call up the search again and confirm the empty search with green
