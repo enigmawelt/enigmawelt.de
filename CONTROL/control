@@ -1,6 +1,6 @@
 Package: enigma2-plugin-extensions-enigmawelt
-Version: 1.0
-Description: Der bekannteste DreamOS/Enigma2 Video Blog
+Version: 1.1
+Description: The biggest DreamOS/Enigma2 Video Blog
 Architecture: all
 Section: extra
 Priority: optional
