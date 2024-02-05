@@ -24,3 +24,4 @@ v1.1.1
 - Fix AttributeError: 'NoneType' object has no attribute 'startswith'
 - Fix [Skin] Error: Font 'Verdana' (in 'Verdana;35') is not defined! Using 'Body' font ('screen_text') instead.
 - small code cleanup
+- fix TypeError: 'NoneType' object is not subscriptable
