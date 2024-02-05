@@ -19,3 +19,8 @@ Manual installation:
 v1.1
 - Search function added
 - Return from the search results list, call up the search again and confirm the empty search with green
+
+v1.1.1
+- Fix AttributeError: 'NoneType' object has no attribute 'startswith'
+- Fix [Skin] Error: Font 'Verdana' (in 'Verdana;35') is not defined! Using 'Body' font ('screen_text') instead.
+- small code cleanup
