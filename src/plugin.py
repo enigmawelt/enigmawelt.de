@@ -223,9 +223,10 @@ class enimaWeltScreen(Screen):
 #		self["handlung"].pageDown()
 
 	def infos(self):
-		description = self["movielist"].getCurrent()[3]
-		self["description"].setText(description)
-		self.show_cover()
+		if self["movielist"].getCurrent() is not None:
+			description = self["movielist"].getCurrent()[3]
+			self["description"].setText(description)
+			self.show_cover()
 
 	def show_cover(self):
 		if self["movielist"].getCurrent() is not None:
