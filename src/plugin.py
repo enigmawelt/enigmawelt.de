@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-# Special thanks go to @jbleyel and @stein17 who was and is significantly involved in the realization.
+# Special thanks go to @jbleyel, @CommanderData2338 and @stein17 who was and is significantly involved in the realization.
 
 import base64
 from os import mkdir
