@@ -25,3 +25,13 @@ v1.1.1
 - Fix [Skin] Error: Font 'Verdana' (in 'Verdana;35') is not defined! Using 'Body' font ('screen_text') instead.
 - small code cleanup
 - fix TypeError: 'NoneType' object is not subscriptable
+
+v1.2
+
+- add download function
+- fix HTML entity character
+- search if no entry message "no entry"
+- yellow again cancels the filter
+- button graphic size reduced & blue added
+- code cleanup
+- add postrm in 
