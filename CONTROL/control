@@ -1,9 +1,9 @@
 Package: enigma2-plugin-extensions-enigmawelt
-Version: 1.1
+Version: 1.2
 Description: The biggest DreamOS/Enigma2 Video Blog
 Architecture: all
 Section: extra
 Priority: optional
-Maintainer: enigmawelt, jbleyel
+Maintainer: enigmawelt, jbleyel, CommanderData2338
 Homepage: https://enigmawelt.de
 Source: https://github.com/enigmawelt/enigmawelt.de
