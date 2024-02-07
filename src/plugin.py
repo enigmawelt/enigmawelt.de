@@ -232,7 +232,7 @@ class enimaWeltScreen(Screen):
 		pass
 
 	def infos(self):
-		if self["movielist"].getCurrent() is not None:
+		if self["movielist"].getCurrent() is not None and isinstance(self["movielist"].getCurrent(), tuple):
 			description = self["movielist"].getCurrent()[3]
 			self["description"].setText(replace_html(description))
 			self.show_cover()
