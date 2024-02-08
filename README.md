@@ -34,4 +34,7 @@ v1.2
 - yellow again cancels the filter
 - button graphic size reduced & blue added
 - code cleanup
-- add postrm in 
+- add postrm in
+
+v1.2.1
+- Skin changes to vertical color buttons and matrix style for OK and EXIT
