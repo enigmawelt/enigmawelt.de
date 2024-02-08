@@ -65,9 +65,6 @@ class enimaWeltScreen(Screen):
 		<widget source="Title" render="Label" position="10,15" size="1720,68" font="Bold;42" transparent="1" />
 			<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/bg.png" position="0,0" size="1920,1080" zPosition="-5"  scale="1" />
 			<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/head_logo.png" position="1720,11" size="68,68" alphatest="blend" scale="1" />
-			<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/red.png" position="1643,e-5" size="128,5" alphatest="blend" scale="1" />
-			<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/green.png" position="1493,e-5" size="128,5" alphatest="blend" scale="1" />
-			<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/yellow.png" position="1343,e-5" size="128,5" alphatest="blend" scale="1" />
 			<widget source="movielist" render="Listbox" position="10,100" size="1070,728" scrollbarMode="showOnDemand" scrollbarForegroundColor="#029d9d" scrollbarBackgroundColor="#125454" foregroundColor="#d1d5d5" foregroundColorSelected="white" backgroundColor="background" backgroundColorSelected="#029d9d"  transparent="1">
 			<convert type="TemplatedMultiContent">
 				{
@@ -85,23 +82,20 @@ class enimaWeltScreen(Screen):
 		</widget>
 		<widget name="cover" position="1095,100" size="690,325" alphatest="blend" conditional="cover" scaleFlags="scaleCenter" transparent="1" />
 		<widget source="description" render="Label" position="1095,445" size="680,420" conditional="description" font="Regular;27" horizontalAlignment="block" transparent="1"/>
-		<widget source="key_red" render="Label" position="1643,e-60" size="128,60" font="Body;35" foregroundColor="white" halign="center" noWrap="1" valign="center" transparent="1">
+		<widget source="key_red" render="Label" position="1655,e-60" size="120,60" backgroundColor="white" font="Regular;37" foregroundColor="black" halign="center" noWrap="1" valign="center">
 			<convert type="ConditionalShowHide" />
 		</widget>
-		<widget source="key_green" render="Label" position="1493,e-60" size="128,60" font="Body;35" foregroundColor="white" halign="center" noWrap="1" valign="center" transparent="1">
+		<widget source="key_green" render="Label" position="1510,e-60" size="120,60" backgroundColor="white" font="Regular;37" foregroundColor="black" halign="center" noWrap="1" valign="center">
 			<convert type="ConditionalShowHide" />
 		</widget>
-		<widget source="key_yellow" render="Label" position="1343,e-60" size="128,60" font="Body;35" foregroundColor="white" halign="center" noWrap="1" valign="center" transparent="1">
+		<widget source="key_yellow" render="Label" position="285,e-60" size="165,60" font="Regular;37" foregroundColor="white" halign="center" noWrap="1" valign="center" transparent="1">
 			<convert type="ConditionalShowHide" />
 		</widget>
-
-
-
-		<widget source="key_blue" render="Label" position="1143,e-60" size="160,60" font="Body;35" foregroundColor="white" halign="center" noWrap="1" valign="center" transparent="1">
+		<widget source="key_blue" render="Label" position="115,e-60" size="165,60" font="Regular;37" foregroundColor="white" halign="center" noWrap="1" valign="center" transparent="1">
 			<convert type="ConditionalShowHide" />
 		</widget>
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/blue.png" position="1143,e-5" size="160,5" alphatest="blend" scale="1" />
-
+		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/blue.png" position="100,e-60" size="5,60" alphatest="blend" scale="1" />
+		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/yellow.png" position="300,e-60" size="5,60" alphatest="blend" scale="1" />
 		<widget name="progress" position="1102,52" size="540,15" foregroundColor="white" borderColor="white" borderWidth="1" transparent="1" />
 		<widget name="DownloadLabel" position="1101,4" size="540,39" font="Bold;21" foregroundColor="white" halign="center" transparent="1" />
 	</screen>"""
@@ -114,7 +108,7 @@ class enimaWeltScreen(Screen):
 		self["description"] = StaticText()
 		self["key_red"] = StaticText("EXIT")
 		self["key_green"] = StaticText("OK")
-		self["key_yellow"] = StaticText("SUCHE")
+		self["key_yellow"] = StaticText("Suche")
 		self["key_blue"] = StaticText("Download")
 		self["DownloadLabel"] = ScrollLabel()
 		self["progress"] = ProgressBar()
