@@ -23,7 +23,7 @@ from json import loads
 import re
 import requests
 from twisted.internet.reactor import callInThread
-from enigma import eServiceReference, ePicLoad, gPixmapPtr
+from enigma import eServiceReference, ePicLoad, gPixmapPtr, addFont
 from Components.ActionMap import ActionMap
 from Components.Pixmap import Pixmap
 from Components.ProgressBar import ProgressBar
@@ -39,6 +39,9 @@ from Tools.Downloader import downloadWithProgress
 PLUGINPATH = "/usr/lib/enigma2/python/Plugins/Extensions/EnigmaWelt/"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36"
 TMPIC = "/tmp/ewcover"
+
+FONT = "/usr/share/fonts/LiberationSans-Regular.ttf"
+addFont(FONT, "SRegular", 100, False)
 
 
 def geturl(url):
@@ -88,14 +91,14 @@ class enimaWeltScreen(Screen):
 		<widget source="key_green" render="Label" position="1510,e-60" size="120,60" backgroundColor="white" font="Regular;37" foregroundColor="black" halign="center" noWrap="1" valign="center">
 			<convert type="ConditionalShowHide" />
 		</widget>
-		<widget source="key_yellow" render="Label" position="275,e-65" size="165,60" font="0;30" foregroundColor="#BEBEBE" halign="center" noWrap="1" valign="center" transparent="1">
+		<widget source="key_yellow" render="Label" position="20,e-65" size="165,60" font="SRegular;28" foregroundColor="#BEBEBE" halign="center" noWrap="1" valign="center" transparent="1">
 			<convert type="ConditionalShowHide" />
 		</widget>
-		<widget source="key_blue" render="Label" position="105,e-65" size="165,60" font="0;30" foregroundColor="#BEBEBE" halign="center" noWrap="1" valign="center" transparent="1">
+		<widget source="key_blue" render="Label" position="205,e-65" size="165,60" font="SRegular;28" foregroundColor="#BEBEBE" halign="center" noWrap="1" valign="center" transparent="1">
 			<convert type="ConditionalShowHide" />
 		</widget>
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/blue.png" position="100,e-60" size="5,60" alphatest="blend" scale="1" />
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/yellow.png" position="300,e-60" size="5,60" alphatest="blend" scale="1" />
+		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/blue.png" position="210,e-60" size="5,50" alphatest="blend" scale="1" />
+		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/yellow.png" position="50,e-60" size="5,50" alphatest="blend" scale="1" />
 		<widget name="progress" position="1102,52" size="540,15" foregroundColor="white" borderColor="white" borderWidth="1" transparent="1" />
 		<widget name="DownloadLabel" position="1101,4" size="540,39" font="Bold;21" foregroundColor="white" halign="center" transparent="1" />
 	</screen>"""
