@@ -88,10 +88,10 @@ class enimaWeltScreen(Screen):
 		<widget source="key_green" render="Label" position="1510,e-60" size="120,60" backgroundColor="white" font="Regular;37" foregroundColor="black" halign="center" noWrap="1" valign="center">
 			<convert type="ConditionalShowHide" />
 		</widget>
-		<widget source="key_yellow" render="Label" position="285,e-60" size="165,60" font="Regular;37" foregroundColor="white" halign="center" noWrap="1" valign="center" transparent="1">
+		<widget source="key_yellow" render="Label" position="275,e-65" size="165,60" font="0;30" foregroundColor="#BEBEBE" halign="center" noWrap="1" valign="center" transparent="1">
 			<convert type="ConditionalShowHide" />
 		</widget>
-		<widget source="key_blue" render="Label" position="115,e-60" size="165,60" font="Regular;37" foregroundColor="white" halign="center" noWrap="1" valign="center" transparent="1">
+		<widget source="key_blue" render="Label" position="105,e-65" size="165,60" font="0;30" foregroundColor="#BEBEBE" halign="center" noWrap="1" valign="center" transparent="1">
 			<convert type="ConditionalShowHide" />
 		</widget>
 		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/blue.png" position="100,e-60" size="5,60" alphatest="blend" scale="1" />
