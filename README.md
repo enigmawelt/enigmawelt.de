@@ -38,3 +38,10 @@ v1.2
 
 v1.2.1
 - Skin changes to vertical color buttons and matrix style for OK and EXIT
+
+v1.3
+- add FHD and HD Skin
+- add Option Menu Download Path, Description, Cover, Playback Position
+- add new Skin Elements
+- add new Button Functions
+- reconfigure Skins
