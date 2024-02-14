@@ -41,6 +41,7 @@ v1.2.1
 
 v1.3
 - add FHD and HD Skin
+- Download Function
 - add Option Menu Download Path, Description, Cover, Playback Position
 - add new Skin Elements
 - add new Button Functions
