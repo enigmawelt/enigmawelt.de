@@ -46,3 +46,6 @@ v1.3
 - add new Skin Elements
 - add new Button Functions
 - reconfigure Skins
+
+v1.3.1
+- Add Version Number Head
