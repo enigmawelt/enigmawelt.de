@@ -93,7 +93,7 @@ class enimaWeltScreen(Screen):
 		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/bg_fhd.png" position="0,871" size="1920,89" zPosition="-5"/>
 		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/logo.png" position="1720,11" size="68,68" alphatest="blend" scale="1"/>
 		<eLabel position="0,90" size="1800,780" backgroundColor="#400f3a3a" zPosition="-1"/>
-		<eLabel position="1630,25" size="100,40" text="v1.3.0" font="SRegular;24" foregroundColor="#FFFFFF" halign="center" valign="center" transparent="1"/>
+		<eLabel position="1630,25" size="100,40" text="v1.3.1" font="SRegular;24" foregroundColor="#FFFFFF" halign="center" valign="center" transparent="1"/>
 		<widget source="movielist" render="Listbox" position="18,108" size="1070,750" foregroundColor="#FFFFFF" foregroundColorSelected="#FFFFFF" backgroundColorSelected="#029d9d" scrollbarMode="showOnDemand" scrollbarWidth="6" scrollbarForegroundColor="#029d9d" scrollbarBackgroundColor="#125454" transparent="1">
 			<convert type="TemplatedMultiContent">{"template": [ MultiContentEntryText(pos=(6,0), size=(1041,45), font=0, text=0, flags=RT_HALIGN_LEFT|RT_VALIGN_CENTER)], "fonts": [gFont("SRegular",33)], "itemHeight": 50 }</convert>
 		</widget>
@@ -121,7 +121,7 @@ class enimaWeltScreen(Screen):
 		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/bg_hd.png" position="0,581" size="1280,59" zPosition="-5"/>
 		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/head_logo.png" position="1146,7" size="45,45" alphatest="blend" scale="1"/>
 		<eLabel position="0,60" size="1200,520" backgroundColor="#400f3a3a" zPosition="-1"/>
-		<eLabel position="1080,18" size="75,20" text="v1.3.0" font="SRegular;17" foregroundColor="#FFFFFF" halign="center" valign="center" transparent="1"/>
+		<eLabel position="1080,18" size="75,20" text="v1.3.1" font="SRegular;17" foregroundColor="#FFFFFF" halign="center" valign="center" transparent="1"/>
 		<widget source="movielist" render="Listbox" position="12,72" size="713,500" foregroundColor="#FFFFFF" foregroundColorSelected="#FFFFFF" backgroundColorSelected="#029d9d" scrollbarMode="showOnDemand" scrollbarWidth="6" scrollbarForegroundColor="#029d9d" scrollbarBackgroundColor="#125454" transparent="1">
 			<convert type="TemplatedMultiContent">{"template": [ MultiContentEntryText(pos=(4,0), size=(694,30), font=0, text=0, flags=RT_HALIGN_LEFT|RT_VALIGN_CENTER)], "fonts": [gFont("SRegular",22)], "itemHeight": 33 }</convert>
 		</widget>
