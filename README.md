@@ -1,7 +1,7 @@
 # enigmawelt.de
 Enigmawelt - The biggest DreamOS/Enigma2 Video Blog
 
-Open Alliance Plugin Enigmawelt
+Open Alliance Plugin Enigmawelt(.de)
 
 The plugin allows easy access to all previously published videos from VideoBlog 'Enigmawelt'. The functions are limited to the known RCU buttons.
 
