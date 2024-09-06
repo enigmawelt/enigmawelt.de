@@ -49,3 +49,6 @@ v1.3
 
 v1.3.1
 - Add Version Number Head
+
+v1.3.4
+- Progressbar Download Color changed
