@@ -9,6 +9,10 @@ The plugin allows easy access to all previously published videos from VideoBlog 
 - Vertical directional pad (select entry from the list)
 - OK Play videos of the selected list entry
 - EXIT Ends the playback of a video and or exits the plugin
+- RED exits the plugin
+- GREEN plays marked video
+- YELLOW search video
+- BLUE Button starts download of the marked line and stop current download
 
 Manual installation:
 
