@@ -13,6 +13,7 @@ The plugin allows easy access to all previously published videos from VideoBlog 
 - GREEN plays marked video
 - YELLOW search video
 - BLUE Button starts download of the marked line and stop current download
+- MENU download folder, download cover, download plot, skin selection an save last playback position
 
 Manual installation:
 
@@ -57,7 +58,7 @@ v1.3.1
 v1.3.4
 - Progressbar Download Color changed
 
-v1.4
+v1.4.1
 - Skin Selector
 - Default Skin modified
 - New Skin blue and gray
