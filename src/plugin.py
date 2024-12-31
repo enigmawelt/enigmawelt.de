@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 # This file is part of the OE-A distribution (https://github.com/xxxx or http://xxx.github.io).
-# Copyright (c) 2024 EnigmaWelt
+# Copyright (c) 2025 EnigmaWelt
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,16 +17,17 @@
 # Special thanks go to @jbleyel, @CommanderData2338 and @stein17 who was and is significantly involved in the realization.
 import sys
 from os import mkdir, path, unlink
-from os.path import exists, splitext
+from os.path import exists, join, splitext
 from json import loads
 import re
 import requests
 from twisted.internet.reactor import callInThread
 from enigma import eServiceReference, ePicLoad, gPixmapPtr, addFont, getDesktop
 from Components.ActionMap import ActionMap
-from Components.config import ConfigDirectory, ConfigSubsection, ConfigYesNo, config, configfile
+from Components.config import ConfigDirectory, ConfigSelection, ConfigSubsection, ConfigYesNo, config, configfile
 from Components.ConfigList import ConfigListScreen
 from Components.FileList import FileList
+from Components.Label import Label
 from Components.Pixmap import Pixmap
 from Components.ProgressBar import ProgressBar
 from Components.ScrollLabel import ScrollLabel
@@ -54,13 +55,21 @@ config.plugins.enimaWelt.savetopath = ConfigDirectory(default="/media/hdd/movie/
 config.plugins.enimaWelt.SaveResumePoint = ConfigYesNo(default=False)
 config.plugins.enimaWelt.COVER_DL = ConfigYesNo(default=False)
 config.plugins.enimaWelt.DESC = ConfigYesNo(default=False)
+config.plugins.enimaWelt.skinOption = ConfigSelection(
+    default="default",
+    choices=[
+        ("default", "Standard"),
+        ("blue", "Blue"),
+        ("gray", "Gray")
+    ]
+)
 
 
 def encode_str(s, encoding="utf-8", errors="strict"):
 	if isinstance(s, str):
 		return s
-	if PY2 and isinstance(s, unicode):
-		return s.encode(encoding, errors)
+#	if PY2 and isinstance(s, unicode):
+#		return s.encode(encoding, errors)
 
 	if PY3 and isinstance(s, bytes):
 		return s.decode(encoding, errors)
@@ -87,22 +96,22 @@ def replace_html(txt):
 class enimaWeltScreen(Screen):
 	if FHD:
 		skin = """
-		<screen name="glass" position="center,center" size="1800,960" flags="wfNoBorder" backgroundColor="#029d9d">
+		<screen name="glass" position="center,center" size="1800,960" flags="wfNoBorder" backgroundColor="#024A4A">
 		<widget source="Title" render="Label" position="20,20" size="1050,60" font="SRegular;39" foregroundColor="#FFFFFF" valign="top" transparent="1"/>
 		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/bg_fhd.png" position="0,0" size="1920,89" zPosition="-5"/>
 		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/bg_fhd.png" position="0,871" size="1920,89" zPosition="-5"/>
 		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/logo.png" position="1720,11" size="68,68" alphatest="blend" scale="1"/>
-		<eLabel position="0,90" size="1800,780" backgroundColor="#400f3a3a" zPosition="-1"/>
-		<eLabel position="1630,25" size="100,40" text="v1.3.4" font="SRegular;24" foregroundColor="#FFFFFF" halign="center" valign="center" transparent="1"/>
-		<widget source="movielist" render="Listbox" position="18,108" size="1070,750" foregroundColor="#FFFFFF" foregroundColorSelected="#FFFFFF" backgroundColorSelected="#029d9d" scrollbarMode="showOnDemand" scrollbarWidth="6" scrollbarForegroundColor="#029d9d" scrollbarBackgroundColor="#125454" transparent="1">
+		<eLabel position="0,90" size="1800,780" backgroundColor="#024A4A" zPosition="-1"/>
+		<eLabel position="1630,25" size="100,40" text="v1.4" font="SRegular;24" foregroundColor="#FFFFFF" halign="center" valign="center" transparent="1"/>
+		<widget source="movielist" render="Listbox" position="18,108" size="1070,750" foregroundColor="#FFFFFF" foregroundColorSelected="#FFFFFF" backgroundColorSelected="#038181" scrollbarMode="showOnDemand" scrollbarWidth="6" scrollbarForegroundColor="#00C0C0" scrollbarBackgroundColor="#024A4A" transparent="1">
 			<convert type="TemplatedMultiContent">{"template": [ MultiContentEntryText(pos=(6,0), size=(1041,45), font=0, text=0, flags=RT_HALIGN_LEFT|RT_VALIGN_CENTER)], "fonts": [gFont("SRegular",33)], "itemHeight": 50 }</convert>
 		</widget>
 		<widget name="cover" position="1095,100" size="690,325" alphatest="blend" conditional="cover" scaleFlags="scaleCenter" transparent="1"/>
-		<widget name="description" position="1105,435" size="680,420" font="SRegular;28" foregroundColor="#FFFFFF" scrollbarWidth="6" scrollbarForegroundColor="#029d9d" transparent="1"/>
+		<widget name="description" position="1105,435" size="680,420" font="SRegular;28" foregroundColor="#FFFFFF" scrollbarWidth="6" scrollbarForegroundColor="#AFAFAF" transparent="1"/>
 		<eLabel position="1660,878" size="118,75" text="EXIT" font="SRegular;36" foregroundColor="#000000" backgroundColor="#FFFFFF" halign="center" valign="center" />
 		<eLabel position="1517,878" size="118,75" text="OK" font="SRegular;36" foregroundColor="#000000" backgroundColor="#FFFFFF" halign="center" valign="center" />
 		<eLabel position="1374,878" size="118,75" text="MENU" font="SRegular;36" foregroundColor="#000000" backgroundColor="#FFFFFF" halign="center" valign="center" />
-		<eLabel position="25,895" size="8,45" backgroundColor="#E90003"/>
+		<eLabel position="25,895" size="8,45" backgroundColor="#0005CD"/>
 		<eLabel position="42,895" size="170,39" text="Beenden" font="SRegular;30" foregroundColor="#FFFFFF" valign="center" transparent="1"/>
 		<eLabel position="225,895" size="8,45" backgroundColor="#15FF0A"/>
 		<eLabel position="242,895" size="170,39" text="Play" font="SRegular;30" foregroundColor="#FFFFFF" valign="center" transparent="1"/>
@@ -110,23 +119,23 @@ class enimaWeltScreen(Screen):
 		<eLabel position="442,895" size="170,39" text="Suche" font="SRegular;30" foregroundColor="#FFFFFF" transparent="1"/>
 		<eLabel position="625,895" size="8,45" backgroundColor="#1B0BF4"/>
 		<eLabel position="642,895" size="170,39" text="Download" font="SRegular;30" foregroundColor="#FFFFFF" valign="center" transparent="1"/>
-		<widget name="progress" position="1150,58" size="480,15" foregroundColor="#FFFFFF" borderColor="#01CDCD" backgroundColor="#029D9D" borderWidth="1" transparent="0"/>
+		<widget name="progress" position="1150,58" size="480,15" foregroundColor="#FFFFFF" borderColor="#FFFFFF" backgroundColor="#024A4A" borderWidth="1" transparent="0"/>
 		<widget name="DownloadLabel" position="1140,10" size="540,39" font="SRegular;21" foregroundColor="#FFFFFF" halign="center" transparent="1"/>
-		</screen>""".replace("{picpath}", PLUGINPATH + "img/")
+		</screen>"""
 	else:
 		skin = """
-		<screen name="glass" position="center,center" size="1200,640" flags="wfNoBorder" backgroundColor="#029d9d">
+		<screen name="glass" position="center,center" size="1200,640" flags="wfNoBorder" backgroundColor="#024A4A">
 		<widget source="Title" render="Label" position="13,12" size="750,40" font="SRegular;28" foregroundColor="#FFFFFF" valign="top" transparent="1"/>
 		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/bg_hd.png" position="0,0" size="1280,59" zPosition="-5"/>
 		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/bg_hd.png" position="0,581" size="1280,59" zPosition="-5"/>
 		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/logo.png" position="1146,7" size="45,45" alphatest="blend" scale="1"/>
-		<eLabel position="0,60" size="1200,520" backgroundColor="#400f3a3a" zPosition="-1"/>
-		<eLabel position="1080,18" size="75,20" text="v1.3.4" font="SRegular;17" foregroundColor="#FFFFFF" halign="center" valign="center" transparent="1"/>
-		<widget source="movielist" render="Listbox" position="12,72" size="713,500" foregroundColor="#FFFFFF" foregroundColorSelected="#FFFFFF" backgroundColorSelected="#029d9d" scrollbarMode="showOnDemand" scrollbarWidth="6" scrollbarForegroundColor="#029d9d" scrollbarBackgroundColor="#125454" transparent="1">
+		<eLabel position="0,60" size="1200,520" backgroundColor="#024A4A" zPosition="-1"/>
+		<eLabel position="1080,18" size="75,20" text="v1.4" font="SRegular;17" foregroundColor="#FFFFFF" halign="center" valign="center" transparent="1"/>
+		<widget source="movielist" render="Listbox" position="12,72" size="713,500" foregroundColor="#FFFFFF" foregroundColorSelected="#FFFFFF" backgroundColorSelected="#038181" scrollbarMode="showOnDemand" scrollbarWidth="6" scrollbarForegroundColor="#00C0C0" scrollbarBackgroundColor="#024A4A" transparent="1">
 			<convert type="TemplatedMultiContent">{"template": [ MultiContentEntryText(pos=(4,0), size=(694,30), font=0, text=0, flags=RT_HALIGN_LEFT|RT_VALIGN_CENTER)], "fonts": [gFont("SRegular",22)], "itemHeight": 33 }</convert>
 		</widget>
 		<widget name="cover" position="730,66" size="460,216" alphatest="blend" conditional="cover" scaleFlags="scaleCenter" transparent="1"/>
-		<widget name="description" position="736,290" size="453,280" font="SRegular;18" foregroundColor="#FFFFFF" scrollbarWidth="6" scrollbarForegroundColor="#029d9d" transparent="1"/>
+		<widget name="description" position="736,290" size="453,280" font="SRegular;18" foregroundColor="#FFFFFF" scrollbarWidth="6" scrollbarForegroundColor="#AFAFAF" transparent="1"/>
 		<eLabel position="1120,587" size="70,45" text="EXIT" font="SRegular;22" foregroundColor="#000000" backgroundColor="#FFFFFF" halign="center" valign="center" />
 		<eLabel position="1035,587" size="70,45" text="OK" font="SRegular;22" foregroundColor="#000000" backgroundColor="#FFFFFF" halign="center" valign="center" />
 		<eLabel position="950,587" size="70,45" text="MENU" font="SRegular;22" foregroundColor="#000000" backgroundColor="#FFFFFF" halign="center" valign="center" />
@@ -138,11 +147,12 @@ class enimaWeltScreen(Screen):
 		<eLabel position="305,598" size="130,26" text="Suche" font="SRegular;20" foregroundColor="#FFFFFF" transparent="1"/>
 		<eLabel position="425,598" size="6,28" backgroundColor="#1B0BF4"/>
 		<eLabel position="440,598" size="130,26" text="Download" font="SRegular;20" foregroundColor="#FFFFFF" valign="center" transparent="1"/>
-		<widget name="progress" position="795,38" size="305,13" foregroundColor="#FFFFFF" borderColor="#01CDCD" backgroundColor="#029D9D" borderWidth="1" transparent="0"/>
+		<widget name="progress" position="795,38" size="305,13" foregroundColor="#FFFFFF" borderColor="#FFFFFF" backgroundColor="#024A4A" borderWidth="1" transparent="0"/>
 		<widget name="DownloadLabel" position="790,7" size="300,26" font="SRegular;14" foregroundColor="#FFFFFF" halign="center" transparent="1"/>
-		</screen>""".replace("{picpath}", PLUGINPATH + "img/")
+		</screen>"""
 
 	def __init__(self, session):
+		self.loadSkin()
 		Screen.__init__(self, session)
 		self["actions"] = ActionMap(["OkCancelActions", "ColorActions", "DirectionActions", "ChannelSelectBaseActions", "MenuActions"], {"menu": self.setup, "green": self.ok, "red": self.exit, "yellow": self.search, "blue": self.download, "up": self.up, "down": self.down, "left": self.left, "right": self.right, "nextBouquet": self.p_up, "prevBouquet": self.p_down, "ok": self.ok, "cancel": self.exit}, -1)
 		self["movielist"] = List()
@@ -164,8 +174,24 @@ class enimaWeltScreen(Screen):
 		self.onLayoutFinish.append(self.mainMenu)
 		self.setTitle("Enigmawelt | Der größte DreamOS/Enigma2 Video Blog")
 
+	def loadSkin(self):
+		res = 1080 if FHD else 720
+		skinpath = join(PLUGINPATH, config.plugins.enimaWelt.skinOption.value, f"skin_{config.plugins.enimaWelt.skinOption.value}_{res}.xml")
+		data = ""
+		if exists(skinpath):
+			try:
+				with open(skinpath, 'r') as f:
+					data = f.read()
+			except OSError:
+				print(f"ERROR LOAD Skin {skinpath}")
+		self.skin = data
+
 	def setup(self):
-		self.session.open(enimaWeltConfig)
+		def setupCallback(answer=None):
+			if answer:
+				self.close(True)
+
+		self.session.openWithCallback(setupCallback, enimaWeltConfig)
 
 	def getUrl(self, data):
 		parse = re.search(r"/embed/(.*)\?cover", data, re.S)
@@ -434,22 +460,35 @@ class enimaWeltConfig(ConfigListScreen, Screen):
 		self.skinName = ["Setup"]
 		self["key_red"] = StaticText("Abbrechen")
 		self["key_green"] = StaticText("Speichern")
-		self["setupActions"] = ActionMap(["SetupActions", "ColorActions"], {"cancel": self.cancel, "red": self.cancel, "ok": self.ok, "green": self.save}, -2)
+		self["setupActions"] = ActionMap(["SetupActions", "ColorActions"],
+			{"cancel": self.cancel,
+			 "red": self.cancel,
+			"ok": self.ok,
+			"green": self.save}, -2)
 		ConfigListScreen.__init__(self, [], session=session)
-		self.list = [("Download-Verzeichnis:", config.plugins.enimaWelt.savetopath), ("Cover Downloaden", config.plugins.enimaWelt.COVER_DL), ("Handlung Downloaden", config.plugins.enimaWelt.DESC)]
+		self.list = [
+			("Download-Verzeichnis:", config.plugins.enimaWelt.savetopath),
+			("Cover Downloaden", config.plugins.enimaWelt.COVER_DL),
+			("Handlung Downloaden", config.plugins.enimaWelt.DESC),
+			("Skin", config.plugins.enimaWelt.skinOption)
+			]
 		if hasattr(InfoBarGenerics, "setResumePoint"):
 			self.list.append(("Letzte Abspielposition speichern", config.plugins.enimaWelt.SaveResumePoint))
 		self["config"].list = self.list
+		self["footnote"] = Label()
+		self["footnote"].hide()
+		self["description"] = Label()
+		self.oldskin = config.plugins.enimaWelt.skinOption.value
 
 	def save(self):
-		self.keySave()
-		configfile.save()
-		self.close()
+		reload = config.plugins.enimaWelt.skinOption.value != self.oldskin
+		self.saveAll()
+		self.close(reload)
 
 	def cancel(self):
 		for x in self["config"].list:
 			x[1].cancel()
-		self.close()
+		self.close(False)
 
 	def ok(self):
 		if self["config"].getCurrent()[1] == config.plugins.enimaWelt.savetopath:
@@ -488,7 +527,11 @@ class DirBrowser(Screen):
 
 
 def main(session, **kwargs):
-	session.open(enimaWeltScreen)
+	def mainCallback(answer=None):
+		if answer:
+			main(session=session)
+
+	session.openWithCallback(mainCallback, enimaWeltScreen)
 
 
 def Plugins(**kwargs):
