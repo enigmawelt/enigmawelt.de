@@ -56,3 +56,8 @@ v1.3.1
 
 v1.3.4
 - Progressbar Download Color changed
+
+v1.4
+- Skin Selector
+- Default Skin modified
+- New Skin blue and gray
