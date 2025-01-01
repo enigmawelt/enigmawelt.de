@@ -14,17 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-# Special thanks go to @jbleyel, @CommanderData2338 and @stein17 who was and is significantly involved in the realization.
-import sys
+# Special thanks go to @jbleyel, @Mr.Servo, @CommanderData2338 and @stein17 who was and is significantly involved in the realization.
+
+from sys import version_info
 from os import mkdir, path, unlink
 from os.path import exists, join, splitext
 from json import loads
-import re
-import requests
+from re import search, S
+from requests import get, RequestException
 from twisted.internet.reactor import callInThread
+
 from enigma import eServiceReference, ePicLoad, gPixmapPtr, addFont, getDesktop
 from Components.ActionMap import ActionMap
-from Components.config import ConfigDirectory, ConfigSelection, ConfigSubsection, ConfigYesNo, config, configfile
+from Components.config import ConfigDirectory, ConfigSelection, ConfigSubsection, ConfigYesNo, config
 from Components.ConfigList import ConfigListScreen
 from Components.FileList import FileList
 from Components.Label import Label
@@ -39,30 +41,25 @@ from Screens import InfoBarGenerics
 from Screens.MessageBox import MessageBox
 from Screens.Screen import Screen
 from Screens.VirtualKeyBoard import VirtualKeyBoard
+from Tools.Directories import resolveFilename, SCOPE_PLUGINS, SCOPE_FONTS
 from Tools.Downloader import downloadWithProgress
-PLUGINPATH = "/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/"
+
+
+PLUGINPATH = resolveFilename(SCOPE_PLUGINS, "Extensions/Enigmawelt/")
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36"
 TMPIC = "/tmp/cover/bild.jpg"
 FHD = getDesktop(0).size().height() > 720
-
-FONT = "/usr/share/fonts/LiberationSans-Regular.ttf"
+FONT = join(resolveFilename(SCOPE_FONTS), "LiberationSans-Regular.ttf")  # /usr/share/fonts/
 addFont(FONT, "SRegular", 100, False)
-PY2 = sys.version_info[0] == 2
-PY3 = sys.version_info[0] == 3
+PY2 = version_info[0] == 2
+PY3 = version_info[0] == 3
 
 config.plugins.enimaWelt = ConfigSubsection()
 config.plugins.enimaWelt.savetopath = ConfigDirectory(default="/media/hdd/movie/")
 config.plugins.enimaWelt.SaveResumePoint = ConfigYesNo(default=False)
 config.plugins.enimaWelt.COVER_DL = ConfigYesNo(default=False)
 config.plugins.enimaWelt.DESC = ConfigYesNo(default=False)
-config.plugins.enimaWelt.skinOption = ConfigSelection(
-    default="default",
-    choices=[
-        ("default", "Standard"),
-        ("blue", "Blue"),
-        ("gray", "Gray")
-    ]
-)
+config.plugins.enimaWelt.skinOption = ConfigSelection(default="default", choices=[("default", "Standard"), ("blue", "Blue"), ("gray", "Gray")])
 
 
 def encode_str(s, encoding="utf-8", errors="strict"):
@@ -78,11 +75,11 @@ def encode_str(s, encoding="utf-8", errors="strict"):
 
 def geturl(url):
 	try:
-		r = requests.get(url, timeout=10, headers={"User-Agent": UA, "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "Accept-Language": "en-us,en;q=0.9,de-DE,de;q=0.8", "Accept-Encoding": "gzip, deflate"})
+		r = get(url, timeout=(3.05, 6), headers={"User-Agent": UA, "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "Accept-Language": "en-us,en;q=0.9,de-DE,de;q=0.8", "Accept-Encoding": "gzip, deflate"})
 		r.raise_for_status()
 		return r.content
-	except requests.RequestException:
-		return ""
+	except RequestException as error:
+		print(f"[Enigmawelt] ERROR in module 'geturl': {error}")
 
 
 def replace_html(txt):
@@ -94,63 +91,6 @@ def replace_html(txt):
 
 
 class enimaWeltScreen(Screen):
-	if FHD:
-		skin = """
-		<screen name="glass" position="center,center" size="1800,960" flags="wfNoBorder" backgroundColor="#024A4A">
-		<widget source="Title" render="Label" position="20,20" size="1050,60" font="SRegular;39" foregroundColor="#FFFFFF" valign="top" transparent="1"/>
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/bg_fhd.png" position="0,0" size="1920,89" zPosition="-5"/>
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/bg_fhd.png" position="0,871" size="1920,89" zPosition="-5"/>
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/logo.png" position="1720,11" size="68,68" alphatest="blend" scale="1"/>
-		<eLabel position="0,90" size="1800,780" backgroundColor="#024A4A" zPosition="-1"/>
-		<eLabel position="1630,25" size="100,40" text="v1.4.1" font="SRegular;24" foregroundColor="#FFFFFF" halign="center" valign="center" transparent="1"/>
-		<widget source="movielist" render="Listbox" position="18,108" size="1070,750" foregroundColor="#FFFFFF" foregroundColorSelected="#FFFFFF" backgroundColorSelected="#038181" scrollbarMode="showOnDemand" scrollbarWidth="6" scrollbarForegroundColor="#00C0C0" scrollbarBackgroundColor="#024A4A" transparent="1">
-			<convert type="TemplatedMultiContent">{"template": [ MultiContentEntryText(pos=(6,0), size=(1041,45), font=0, text=0, flags=RT_HALIGN_LEFT|RT_VALIGN_CENTER)], "fonts": [gFont("SRegular",33)], "itemHeight": 50 }</convert>
-		</widget>
-		<widget name="cover" position="1095,100" size="690,325" alphatest="blend" conditional="cover" scaleFlags="scaleCenter" transparent="1"/>
-		<widget name="description" position="1105,435" size="680,420" font="SRegular;28" foregroundColor="#FFFFFF" scrollbarWidth="6" scrollbarForegroundColor="#AFAFAF" transparent="1"/>
-		<eLabel position="1660,878" size="118,75" text="EXIT" font="SRegular;36" foregroundColor="#000000" backgroundColor="#FFFFFF" halign="center" valign="center" />
-		<eLabel position="1517,878" size="118,75" text="OK" font="SRegular;36" foregroundColor="#000000" backgroundColor="#FFFFFF" halign="center" valign="center" />
-		<eLabel position="1374,878" size="118,75" text="MENU" font="SRegular;36" foregroundColor="#000000" backgroundColor="#FFFFFF" halign="center" valign="center" />
-		<eLabel position="25,895" size="8,45" backgroundColor="#0005CD"/>
-		<eLabel position="42,895" size="170,39" text="Beenden" font="SRegular;30" foregroundColor="#FFFFFF" valign="center" transparent="1"/>
-		<eLabel position="225,895" size="8,45" backgroundColor="#15FF0A"/>
-		<eLabel position="242,895" size="170,39" text="Play" font="SRegular;30" foregroundColor="#FFFFFF" valign="center" transparent="1"/>
-		<eLabel position="426,895" size="8,45" backgroundColor="#FDFE0C"/>
-		<eLabel position="442,895" size="170,39" text="Suche" font="SRegular;30" foregroundColor="#FFFFFF" transparent="1"/>
-		<eLabel position="625,895" size="8,45" backgroundColor="#1B0BF4"/>
-		<eLabel position="642,895" size="170,39" text="Download" font="SRegular;30" foregroundColor="#FFFFFF" valign="center" transparent="1"/>
-		<widget name="progress" position="1150,58" size="480,15" foregroundColor="#FFFFFF" borderColor="#FFFFFF" backgroundColor="#024A4A" borderWidth="1" transparent="0"/>
-		<widget name="DownloadLabel" position="1140,10" size="540,39" font="SRegular;21" foregroundColor="#FFFFFF" halign="center" transparent="1"/>
-		</screen>"""
-	else:
-		skin = """
-		<screen name="glass" position="center,center" size="1200,640" flags="wfNoBorder" backgroundColor="#024A4A">
-		<widget source="Title" render="Label" position="13,12" size="750,40" font="SRegular;28" foregroundColor="#FFFFFF" valign="top" transparent="1"/>
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/bg_hd.png" position="0,0" size="1280,59" zPosition="-5"/>
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/bg_hd.png" position="0,581" size="1280,59" zPosition="-5"/>
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/Enigmawelt/img/logo.png" position="1146,7" size="45,45" alphatest="blend" scale="1"/>
-		<eLabel position="0,60" size="1200,520" backgroundColor="#024A4A" zPosition="-1"/>
-		<eLabel position="1080,18" size="75,20" text="v1.4.1" font="SRegular;17" foregroundColor="#FFFFFF" halign="center" valign="center" transparent="1"/>
-		<widget source="movielist" render="Listbox" position="12,72" size="713,500" foregroundColor="#FFFFFF" foregroundColorSelected="#FFFFFF" backgroundColorSelected="#038181" scrollbarMode="showOnDemand" scrollbarWidth="6" scrollbarForegroundColor="#00C0C0" scrollbarBackgroundColor="#024A4A" transparent="1">
-			<convert type="TemplatedMultiContent">{"template": [ MultiContentEntryText(pos=(4,0), size=(694,30), font=0, text=0, flags=RT_HALIGN_LEFT|RT_VALIGN_CENTER)], "fonts": [gFont("SRegular",22)], "itemHeight": 33 }</convert>
-		</widget>
-		<widget name="cover" position="730,66" size="460,216" alphatest="blend" conditional="cover" scaleFlags="scaleCenter" transparent="1"/>
-		<widget name="description" position="736,290" size="453,280" font="SRegular;18" foregroundColor="#FFFFFF" scrollbarWidth="6" scrollbarForegroundColor="#AFAFAF" transparent="1"/>
-		<eLabel position="1120,587" size="70,45" text="EXIT" font="SRegular;22" foregroundColor="#000000" backgroundColor="#FFFFFF" halign="center" valign="center" />
-		<eLabel position="1035,587" size="70,45" text="OK" font="SRegular;22" foregroundColor="#000000" backgroundColor="#FFFFFF" halign="center" valign="center" />
-		<eLabel position="950,587" size="70,45" text="MENU" font="SRegular;22" foregroundColor="#000000" backgroundColor="#FFFFFF" halign="center" valign="center" />
-		<eLabel position="20,598" size="6,28" backgroundColor="#E90003"/>
-		<eLabel position="35,598" size="130,26" text="Beenden" font="SRegular;20" foregroundColor="#FFFFFF" valign="center" transparent="1"/>
-		<eLabel position="155,598" size="6,28" backgroundColor="#15FF0A"/>
-		<eLabel position="170,598" size="130,26" text="Play" font="SRegular;20" foregroundColor="#FFFFFF" valign="center" transparent="1"/>
-		<eLabel position="290,598" size="6,28" backgroundColor="#FDFE0C"/>
-		<eLabel position="305,598" size="130,26" text="Suche" font="SRegular;20" foregroundColor="#FFFFFF" transparent="1"/>
-		<eLabel position="425,598" size="6,28" backgroundColor="#1B0BF4"/>
-		<eLabel position="440,598" size="130,26" text="Download" font="SRegular;20" foregroundColor="#FFFFFF" valign="center" transparent="1"/>
-		<widget name="progress" position="795,38" size="305,13" foregroundColor="#FFFFFF" borderColor="#FFFFFF" backgroundColor="#024A4A" borderWidth="1" transparent="0"/>
-		<widget name="DownloadLabel" position="790,7" size="300,26" font="SRegular;14" foregroundColor="#FFFFFF" halign="center" transparent="1"/>
-		</screen>"""
-
 	def __init__(self, session):
 		self.loadSkin()
 		Screen.__init__(self, session)
@@ -167,7 +107,7 @@ class enimaWeltScreen(Screen):
 		self["progress"].hide()
 		self.filteredItems = []
 		self.allItems = []
-		self.DL_File = None
+		self.DL_File = ""
 		if not exists("/tmp/cover/"):
 			mkdir("/tmp/cover/")
 		self.filter = ""
@@ -180,10 +120,10 @@ class enimaWeltScreen(Screen):
 		data = ""
 		if exists(skinpath):
 			try:
-				with open(skinpath, 'r') as f:
+				with open(skinpath, "r") as f:
 					data = f.read()
-			except OSError:
-				print(f"ERROR LOAD Skin {skinpath}")
+			except OSError as error:
+				print(f"[Enigmawelt] ERROR LOAD skin in module 'loadSkin': {skinpath} - {error}")
 		self.skin = data
 
 	def setup(self):
@@ -194,10 +134,9 @@ class enimaWeltScreen(Screen):
 		self.session.openWithCallback(setupCallback, enimaWeltConfig)
 
 	def getUrl(self, data):
-		parse = re.search(r"/embed/(.*)\?cover", data, re.S)
+		parse = search(r"/embed/(.*)\?cover", data, S)
 		if parse:
 			return parse.group(1)
-		return None
 
 	def parseData(self, data):
 		self.allItems = []
@@ -218,8 +157,8 @@ class enimaWeltScreen(Screen):
 							content_text = content_text[:pos]
 						url = self.getUrl(url)
 						self.allItems.append((encode_str(title), encode_str(url), (image_url), encode_str(content_text)))
-		except Exception as e:
-			print(e)
+		except Exception as error:
+			print(f"[Enigmawelt] ERROR in module 'parseData': {error}")
 
 	def search(self):
 		def searchCallback(text):
@@ -230,7 +169,7 @@ class enimaWeltScreen(Screen):
 			self.filter = ""
 			self.refresh()
 		else:
-			self.session.openWithCallback(searchCallback, VirtualKeyBoard, title=_("Suche..."), windowTitle=_("Suche"))
+			self.session.openWithCallback(searchCallback, VirtualKeyBoard, title="Suche...", windowTitle="Suche")
 
 	def mainMenu(self):
 		def getList():
@@ -256,22 +195,22 @@ class enimaWeltScreen(Screen):
 		url = self["movielist"].getCurrent()[1]
 		url = "https://public-api.wordpress.com/rest/v1.1/videos/%s" % url
 		data = geturl(url)
-		try:
-			js = loads(data)
-			videourl = js["original"]
-			self.Play(videourl, self["movielist"].getCurrent()[0])
-		except Exception as e:
-			print(e)
+		if data:
+			try:
+				js = loads(data)
+				videourl = js["original"]
+				self.Play(videourl, self["movielist"].getCurrent()[0])
+			except Exception as error:
+				print(f"[Enigmawelt] ERROR in class 'enimaWeltScreen' module 'ok': {error}")
 
 	def exit(self):
 		self.close()
 
 	def Play(self, url, title):
 		if url:
-			if url:
-				sref = eServiceReference(4097, 0, encode_str(url))
-				sref.setName(title)
-				self.session.open(Player, sref)
+			sref = eServiceReference(4097, 0, encode_str(url))
+			sref.setName(title)
+			self.session.open(Player, sref)
 
 	def up(self):
 		if self["movielist"]:
@@ -321,11 +260,12 @@ class enimaWeltScreen(Screen):
 			width = str(self["cover"].instance.size().width())
 			url = url.replace("?fit=1500", "?fit=" + width)
 			data = geturl(url)
-			with open(TMPIC, "wb") as f:
-				f.write(data)
-			if self["movielist"].getCurrent() is not None:
-				if index == int(self["movielist"].getIndex()):
-					self.get_cover(TMPIC)
+			if data:
+				with open(TMPIC, "wb") as f:
+					f.write(data)
+				if self["movielist"].getCurrent() is not None:
+					if index == int(self["movielist"].getIndex()):
+						self.get_cover(TMPIC)
 		except (IOError, KeyError):
 			pass
 
@@ -349,12 +289,13 @@ class enimaWeltScreen(Screen):
 			url = self["movielist"].getCurrent()[1]
 			url = "https://public-api.wordpress.com/rest/v1.1/videos/%s" % url
 			data = geturl(url)
-			try:
-				js = loads(data)
-				videourl = js["original"]
-				self.DL_Start(videourl, self["movielist"].getCurrent()[0])
-			except Exception as e:
-				print(e)
+			if data:
+				try:
+					js = loads(data)
+					videourl = js["original"]
+					self.DL_Start(videourl, self["movielist"].getCurrent()[0])
+				except Exception as error:
+					print(f"[Enigmawelt] ERROR in class 'enimaWeltScreen' module 'download': {error}")
 
 	def DL_Start(self, url, title):
 		title = "".join(i for i in title if i not in r'\/":*?<>|')
@@ -395,7 +336,7 @@ class enimaWeltScreen(Screen):
 			fileext = filename + ext
 			if path.exists(fileext):
 				unlink(fileext)
-		self.DL_File = None
+		self.DL_File = ""
 
 	def DL_Stop(self, answer):
 		if answer:
@@ -407,7 +348,7 @@ class enimaWeltScreen(Screen):
 	def DL_finished(self, s=""):
 		self["progress"].hide()
 		self["DownloadLabel"].hide()
-		self.DL_File = None
+		self.DL_File = ""
 		self.session.open(MessageBox, "Download erfolgreich %s" % s, MessageBox.TYPE_INFO, timeout=5)
 
 	def DL_failed(self, error):
