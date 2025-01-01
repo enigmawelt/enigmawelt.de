@@ -62,3 +62,7 @@ v1.4.1
 - Skin Selector
 - Default Skin modified
 - New Skin blue and gray
+
+v1.4.2
+- code optimized
+- exit button color
