@@ -66,3 +66,6 @@ v1.4.1
 v1.4.2
 - code optimized
 - exit button color
+
+v1.4.3
+- mistake default skin
