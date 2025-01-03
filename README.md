@@ -69,3 +69,6 @@ v1.4.2
 
 v1.4.3
 - mistake default skin
+
+v1.4.4
+-mistake CONTROL
