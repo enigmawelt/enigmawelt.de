@@ -72,3 +72,6 @@ v1.4.3
 
 v1.4.4
 - mistake CONTROL
+
+v1.4.5
+- Half transparency
