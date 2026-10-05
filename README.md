@@ -75,3 +75,6 @@ v1.4.4
 
 v1.4.5
 - Half transparency
+
+v1.4.6
+- Fix: Font 'SRegular' missing after fast skin reload on OpenATV 8.0 (font is now registered on every plugin start, with fallback to DejaVuSans/nmsbd)

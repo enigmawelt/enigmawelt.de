@@ -49,8 +49,7 @@ PLUGINPATH = resolveFilename(SCOPE_PLUGINS, "Extensions/Enigmawelt/")
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36"
 TMPIC = "/tmp/cover/bild.jpg"
 FHD = getDesktop(0).size().height() > 720
-FONT = join(resolveFilename(SCOPE_FONTS), "LiberationSans-Regular.ttf")  # /usr/share/fonts/
-addFont(FONT, "SRegular", 100, False)
+FONTS = ("LiberationSans-Regular.ttf", "DejaVuSans.ttf", "nmsbd.ttf")  # /usr/share/fonts/
 PY2 = version_info[0] == 2
 PY3 = version_info[0] == 3
 
@@ -60,6 +59,16 @@ config.plugins.enimaWelt.SaveResumePoint = ConfigYesNo(default=False)
 config.plugins.enimaWelt.COVER_DL = ConfigYesNo(default=False)
 config.plugins.enimaWelt.DESC = ConfigYesNo(default=False)
 config.plugins.enimaWelt.skinOption = ConfigSelection(default="default", choices=[("default", "Standard"), ("blue", "Blue"), ("gray", "Gray")])
+
+
+# OpenATV 8.0+ clears all fonts on a fast skin reload, so register before every plugin start.
+def registerFont():
+	for font in FONTS:
+		fontPath = join(resolveFilename(SCOPE_FONTS), font)
+		if exists(fontPath):
+			addFont(fontPath, "SRegular", 100, False)
+			return
+	print("[Enigmawelt] ERROR: no usable font found for 'SRegular'")
 
 
 def encode_str(s, encoding="utf-8", errors="strict"):
@@ -472,6 +481,7 @@ def main(session, **kwargs):
 		if answer:
 			main(session=session)
 
+	registerFont()
 	session.openWithCallback(mainCallback, enimaWeltScreen)
 
 
