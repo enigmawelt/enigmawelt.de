@@ -52,6 +52,12 @@ FHD = getDesktop(0).size().height() > 720
 FONTS = ("LiberationSans-Regular.ttf", "DejaVuSans.ttf", "nmsbd.ttf")  # /usr/share/fonts/
 PY2 = version_info[0] == 2
 PY3 = version_info[0] == 3
+FEED_URL = "https://enigmawelt.de/feed/json"
+# For tests only: a file with another feed address (e.g. the new site before it goes live) overrides FEED_URL
+FEED_OVERRIDE = "/etc/enigma2/enigmawelt-feed.url"
+MAX_FEED_PAGES = 10  # the old WordPress feed is paged (next_url), the new one has all items on one page
+QUALITIES = ("1080p", "720p", "480p", "360p")
+VIDEOPRESS_API = "https://public-api.wordpress.com/rest/v1.1/videos/%s"
 
 config.plugins.enimaWelt = ConfigSubsection()
 config.plugins.enimaWelt.savetopath = ConfigDirectory(default="/media/hdd/movie/")
@@ -59,6 +65,7 @@ config.plugins.enimaWelt.SaveResumePoint = ConfigYesNo(default=False)
 config.plugins.enimaWelt.COVER_DL = ConfigYesNo(default=False)
 config.plugins.enimaWelt.DESC = ConfigYesNo(default=False)
 config.plugins.enimaWelt.skinOption = ConfigSelection(default="default", choices=[("default", "Standard"), ("blue", "Blue"), ("gray", "Gray")])
+config.plugins.enimaWelt.quality = ConfigSelection(default="1080p", choices=[(q, q) for q in QUALITIES])
 
 
 # OpenATV 8.0+ clears all fonts on a fast skin reload, so register before every plugin start.
@@ -89,6 +96,38 @@ def geturl(url):
 		return r.content
 	except RequestException as error:
 		print(f"[Enigmawelt] ERROR in module 'geturl': {error}")
+
+
+def feedUrl():
+	if exists(FEED_OVERRIDE):
+		try:
+			with open(FEED_OVERRIDE, "r") as f:
+				url = f.read().strip()
+			if url.startswith("http"):
+				print(f"[Enigmawelt] using test feed {url}")
+				return url
+		except OSError as error:
+			print(f"[Enigmawelt] ERROR reading {FEED_OVERRIDE}: {error}")
+	return FEED_URL
+
+
+def videoUrl(item):
+	"""MP4 address of a list entry: from the feed (Bunny Stream, "_enigmawelt") in the chosen quality,
+	otherwise (old WordPress feed) via the VideoPress API as before."""
+	mp4 = (item[4] or {}).get("mp4") if len(item) > 4 else None
+	if mp4:
+		wanted = config.plugins.enimaWelt.quality.value
+		i = QUALITIES.index(wanted) if wanted in QUALITIES else 0
+		for quality in QUALITIES[i:] + QUALITIES[:i][::-1]:  # chosen quality, then lower ones, then higher ones
+			if mp4.get(quality):
+				return mp4[quality]
+	if item[1]:
+		data = geturl(VIDEOPRESS_API % item[1])
+		if data:
+			try:
+				return loads(data)["original"]
+			except Exception as error:
+				print(f"[Enigmawelt] ERROR in module 'videoUrl': {error}")
 
 
 def replace_html(txt):
@@ -148,7 +187,7 @@ class enimaWeltScreen(Screen):
 			return parse.group(1)
 
 	def parseData(self, data):
-		self.allItems = []
+		"""Adds the entries of one feed page and returns the address of the next page (or None)."""
 		try:
 			items = loads(data)
 			if "items" in items:
@@ -165,7 +204,10 @@ class enimaWeltScreen(Screen):
 						if pos > 0:
 							content_text = content_text[:pos]
 						url = self.getUrl(url)
-						self.allItems.append((encode_str(title), encode_str(url), (image_url), encode_str(content_text)))
+						extra = item.get("_enigmawelt") or {}  # new feed: Bunny Stream addresses
+						if url or extra.get("mp4"):
+							self.allItems.append((encode_str(title), encode_str(url), (image_url), encode_str(content_text), extra))
+				return items.get("next_url")
 		except Exception as error:
 			print(f"[Enigmawelt] ERROR in module 'parseData': {error}")
 
@@ -182,9 +224,16 @@ class enimaWeltScreen(Screen):
 
 	def mainMenu(self):
 		def getList():
-			data = geturl("https://enigmawelt.de/feed/json")
-			if data:
-				self.parseData(data)
+			self.allItems = []
+			url = feedUrl()
+			for page in range(MAX_FEED_PAGES):
+				data = geturl(url)
+				if not data:
+					break
+				url = self.parseData(data)
+				if not url:
+					break
+			if self.allItems:
 				self.refresh()
 
 		callInThread(getList)
@@ -201,16 +250,9 @@ class enimaWeltScreen(Screen):
 		self.infos()
 
 	def ok(self):
-		url = self["movielist"].getCurrent()[1]
-		url = "https://public-api.wordpress.com/rest/v1.1/videos/%s" % url
-		data = geturl(url)
-		if data:
-			try:
-				js = loads(data)
-				videourl = js["original"]
-				self.Play(videourl, self["movielist"].getCurrent()[0])
-			except Exception as error:
-				print(f"[Enigmawelt] ERROR in class 'enimaWeltScreen' module 'ok': {error}")
+		current = self["movielist"].getCurrent()
+		if current:
+			self.Play(videoUrl(current), current[0])
 
 	def exit(self):
 		self.close()
@@ -295,16 +337,10 @@ class enimaWeltScreen(Screen):
 		else:
 			if not self["movielist"].getCurrent():
 				return
-			url = self["movielist"].getCurrent()[1]
-			url = "https://public-api.wordpress.com/rest/v1.1/videos/%s" % url
-			data = geturl(url)
-			if data:
-				try:
-					js = loads(data)
-					videourl = js["original"]
-					self.DL_Start(videourl, self["movielist"].getCurrent()[0])
-				except Exception as error:
-					print(f"[Enigmawelt] ERROR in class 'enimaWeltScreen' module 'download': {error}")
+			current = self["movielist"].getCurrent()
+			videourl = videoUrl(current)
+			if videourl:
+				self.DL_Start(videourl, current[0])
 
 	def DL_Start(self, url, title):
 		title = "".join(i for i in title if i not in r'\/":*?<>|')
@@ -420,7 +456,8 @@ class enimaWeltConfig(ConfigListScreen, Screen):
 			("Download-Verzeichnis:", config.plugins.enimaWelt.savetopath),
 			("Cover Downloaden", config.plugins.enimaWelt.COVER_DL),
 			("Handlung Downloaden", config.plugins.enimaWelt.DESC),
-			("Skin", config.plugins.enimaWelt.skinOption)
+			("Skin", config.plugins.enimaWelt.skinOption),
+			("Videoqualität", config.plugins.enimaWelt.quality)
 			]
 		if hasattr(InfoBarGenerics, "setResumePoint"):
 			self.list.append(("Letzte Abspielposition speichern", config.plugins.enimaWelt.SaveResumePoint))

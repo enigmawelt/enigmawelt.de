@@ -78,3 +78,9 @@ v1.4.5
 
 v1.4.6
 - Fix: Font 'SRegular' missing after fast skin reload on OpenATV 8.0 (font is now registered on every plugin start, with fallback to DejaVuSans/nmsbd)
+
+v1.5.0
+- Videos from Bunny Stream: when the feed carries the new "_enigmawelt" field, the MP4 address comes directly from the feed (no VideoPress lookup); with the old feed everything works as before
+- New option "Videoqualität" (1080p, 720p, 480p, 360p); falls back to the next available quality
+- Reads all pages of the feed (next_url), so the oldest videos are no longer missing
+- For testing: /etc/enigma2/enigmawelt-feed.url can point to another feed address
